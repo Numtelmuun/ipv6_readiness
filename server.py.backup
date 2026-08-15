@@ -1,0 +1,67 @@
+from netmiko import ConnectHandler
+from mcp.server.mcpserver import MCPServer
+
+
+mcp = MCPServer("IPv6 Readiness Assessment")
+
+
+DEVICE = {
+    "device_type": "cisco_ios",
+    "host": "192.168.100.1",
+    "username": "admin",
+    "password": "cisco123",
+}
+
+
+def connect_device():
+    return ConnectHandler(**DEVICE)
+
+
+@mcp.tool()
+def get_device_info() -> str:
+    """Get basic information about the network device."""
+
+    connection = connect_device()
+
+    try:
+        output = connection.send_command("show version")
+        return output
+
+    finally:
+        connection.disconnect()
+
+
+@mcp.tool()
+def get_interface_status() -> str:
+    """Get IPv4 interface status information."""
+
+    connection = connect_device()
+
+    try:
+        output = connection.send_command(
+            "show ip interface brief"
+        )
+        return output
+
+    finally:
+        connection.disconnect()
+
+
+@mcp.tool()
+def get_ipv6_status() -> str:
+    """Get IPv6 interface status information."""
+
+    connection = connect_device()
+
+    try:
+        output = connection.send_command(
+            "show ipv6 interface brief"
+        )
+        return output
+
+    finally:
+        connection.disconnect()
+
+
+if __name__ == "__main__":
+    mcp.run()
