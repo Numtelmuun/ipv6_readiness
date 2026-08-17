@@ -1,6 +1,7 @@
 import yaml
 
 from network.ssh_client import NetworkDevice
+from vendors.registry import get_vendor_adapter
 
 
 def load_devices():
@@ -17,6 +18,10 @@ def load_devices():
 
     for item in data["devices"]:
 
+        adapter = get_vendor_adapter(
+            item["platform"]
+        )
+
         device = NetworkDevice(
             name=item["name"],
             host=item["host"],
@@ -24,6 +29,7 @@ def load_devices():
             username=item["username"],
             password=item["password"],
             role=item.get("role"),
+            adapter=adapter,
         )
 
         devices.append(device)

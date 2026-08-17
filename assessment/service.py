@@ -1,13 +1,6 @@
 from network.inventory import load_devices
-
-from parsers.cisco_parser import (
-    parse_ipv6_device_data,
-    parse_hostname,
-)
-
 from assessment.engine import assess_ipv6
 from assessment.summary import summarize_findings
-from assessment.recommendations import generate_recommendations
 
 
 def assess_device(device_name: str):
@@ -28,59 +21,43 @@ def assess_device(device_name: str):
             f"Device '{device_name}' not found in inventory."
         )
 
-    commands = [
-        "show version",
-        "show ipv6 interface brief",
-        "show ipv6 route",
-        "show ipv6 protocols",
-        "show running-config | include ^hostname",
-    ]
+    # ---------------------------------------------
+    # Vendor-specific commands come from adapter
+    # ---------------------------------------------
+
+    commands = device.adapter.get_commands()
+
+    # ---------------------------------------------
+    # Execute commands through network abstraction
+    # ---------------------------------------------
 
     outputs = device.execute_many(commands)
 
-    version = outputs[
-        "show version"
-    ]
+    # ---------------------------------------------
+    # Parse using vendor adapter
+    # ---------------------------------------------
 
-    interfaces = outputs[
-        "show ipv6 interface brief"
-    ]
+    normalized = device.adapter.parse_outputs(outputs)
 
-    routing = outputs[
-        "show ipv6 route"
-    ]
-
-    protocols = outputs[
-        "show ipv6 protocols"
-    ]
-
-    hostname_output = outputs[
-        "show running-config | include ^hostname"
-    ]
-
-    normalized = parse_ipv6_device_data(
-        version_output=version,
-        interface_output=interfaces,
-        routing_output=routing,
-        protocols_output=protocols,
-    )
+    # ---------------------------------------------
+    # Common fields
+    # ---------------------------------------------
 
     normalized.hostname = (
-        parse_hostname(hostname_output)
+        device.adapter.parse_hostname(outputs)
         or device.name
     )
 
     normalized.role = device.role
 
+    # ---------------------------------------------
+    # Common IPv6 assessment engine
+    # ---------------------------------------------
+
     result = assess_ipv6(normalized)
 
     result["summary"] = summarize_findings(
         result["findings"]
-    )
-
-    result["recommendations"] = generate_recommendations(
-        result["findings"],
-        normalized
     )
 
     return result
@@ -103,13 +80,12 @@ def assess_all_devices():
         "not_ready": 0,
     }
 
-    total_score = 0
-
-    all_recommendations = []
+    total_score = 0.0
+    recommendations = []
 
     for result in results:
 
-        readiness = result["readiness"]
+        readiness = result.get("readiness")
 
         if readiness == "READY":
             summary["ready"] += 1
@@ -123,41 +99,44 @@ def assess_all_devices():
         elif readiness == "NOT_READY":
             summary["not_ready"] += 1
 
-        total_score += result["score"]
+        total_score += result.get("score", 0.0)
 
         for recommendation in result.get(
             "recommendations",
             []
         ):
-            all_recommendations.append({
-                "device": result["device"],
-                "role": result["role"],
-                **recommendation,
-            })
+            recommendations.append(
+                {
+                    "device": result.get("device"),
+                    "role": result.get("role"),
+                    **recommendation,
+                }
+            )
 
-    if results:
-        average_score = round(
-            total_score / len(results),
-            2
-        )
-    else:
-        average_score = 0
+    average_score = (
+        total_score / len(results)
+        if results
+        else 0.0
+    )
 
     return {
         "summary": summary,
-        "average_score": average_score,
-        "recommendation_count": len(
-            all_recommendations
+        "average_score": round(
+            average_score,
+            2
         ),
-        "recommendations": all_recommendations,
+        "recommendation_count": len(
+            recommendations
+        ),
+        "recommendations": recommendations,
         "devices": [
             {
-                "device": result["device"],
-                "role": result["role"],
-                "vendor": result["vendor"],
-                "model": result["model"],
-                "score": result["score"],
-                "readiness": result["readiness"],
+                "device": result.get("device"),
+                "role": result.get("role"),
+                "vendor": result.get("vendor"),
+                "model": result.get("model"),
+                "score": result.get("score"),
+                "readiness": result.get("readiness"),
             }
             for result in results
         ],

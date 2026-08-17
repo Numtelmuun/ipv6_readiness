@@ -11,6 +11,7 @@ class NetworkDevice:
         username: str,
         password: str,
         role: str | None = None,
+        adapter=None,
     ):
         self.name = name
         self.host = host
@@ -18,6 +19,7 @@ class NetworkDevice:
         self.username = username
         self.password = password
         self.role = role
+        self.adapter = adapter
 
     def _connection_params(self):
 
@@ -40,7 +42,10 @@ class NetworkDevice:
         finally:
             connection.disconnect()
 
-    def execute_many(self, commands: list[str]) -> dict[str, str]:
+    def execute_many(
+        self,
+        commands: list[str]
+    ) -> dict[str, str]:
 
         connection = ConnectHandler(
             **self._connection_params()
@@ -51,6 +56,7 @@ class NetworkDevice:
             results = {}
 
             for command in commands:
+
                 results[command] = connection.send_command(
                     command
                 )
