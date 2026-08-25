@@ -1,0 +1,1 @@
+IPv6 Routing Protocol is "ospf 1"

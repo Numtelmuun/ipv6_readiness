@@ -1,0 +1,10 @@
+GigabitEthernet0/0/0 current state : UP
+Line protocol current state : UP
+IPv6 is enabled, link-local address is FE80::30
+  Global unicast address(es):
+    2001:DB8:30::1/64
+GigabitEthernet0/0/1 current state : UP
+Line protocol current state : UP
+IPv6 is enabled, link-local address is FE80::31
+  Global unicast address(es):
+    2001:DB8:31::1/64

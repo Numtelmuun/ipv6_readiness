@@ -1,0 +1,29 @@
+devices:
+  - name: R1
+    vendor: cisco
+    host: 192.0.2.11
+    platform: cisco_ios
+    role: edge
+    username: fixture
+    password: fixture
+  - name: R2
+    vendor: juniper
+    host: 192.0.2.12
+    platform: juniper_junos
+    role: core
+    username: fixture
+    password: fixture
+  - name: R3
+    vendor: huawei
+    host: 192.0.2.13
+    platform: huawei_vrp
+    role: core
+    username: fixture
+    password: fixture
+  - name: SW1
+    vendor: cisco
+    host: 192.0.2.14
+    platform: cisco_ios
+    role: access
+    username: fixture
+    password: fixture

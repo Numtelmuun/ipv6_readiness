@@ -109,7 +109,9 @@ def parse_ipv6_routing(
     output: str
 ) -> IPv6Routing:
 
-    routing = IPv6Routing()
+    # No routing-table header means collection could not establish the state;
+    # preserve that distinction instead of treating it as disabled.
+    routing = IPv6Routing(enabled=None)
 
     if "IPv6 Routing Table" not in output:
         return routing

@@ -8,7 +8,9 @@ The project automates the assessment of IPv6 readiness for network devices in a 
 
 The system connects to network devices through SSH, collects IPv6-related information, parses the output, evaluates deterministic IPv6 readiness rules, and exposes the assessment functionality through an **MCP server**.
 
-An optional LLM agent can consume the MCP assessment results and generate an AI-assisted IPv6 readiness report.
+An optional local AI workflow sends only the completed, structured assessment
+JSON to Amazon Bedrock Runtime for interpretation and recommendations. MCP,
+SSH collection, parsing, and deterministic scoring remain local.
 
 ---
 
@@ -25,9 +27,9 @@ Network Inventory
 Collectors
      |
      v
-Cisco Parsers
+Vendor Adapters and Parsers
      |
-     v
+    v
 IPv6 Assessment Engine
      |
      +----> Findings
@@ -53,10 +55,10 @@ MCP Server
      +----> assess_all_ipv6_devices
      |
      v
-LLM Agent
+AWS Bedrock Runtime API
      |
      v
-AI IPv6 Readiness Report
+Validated AI IPv6 Readiness Report
 ```
 
 ---
@@ -82,6 +84,7 @@ ipv6-mcp-assessment/
 ├── models/
 │   ├── __init__.py
 │   ├── assessment.py
+│   ├── ai_report.py
 │   └── device.py
 │
 ├── network/
@@ -96,6 +99,11 @@ ipv6-mcp-assessment/
 ├── server.py
 ├── agent.py
 ├── llm_agent.py
+├── aws_ai/
+│   └── bedrock_client.py
+├── tests/                 # offline pytest suite; no network/AWS calls
+├── requirements.txt
+└── .env.example
 │
 ├── test_assessment.py
 ├── test_inventory.py
@@ -127,10 +135,10 @@ The MCP SDK currently installed in the project is:
 mcp 2.0.0
 ```
 
-The OpenAI Python library currently installed is:
+The AWS SDK used for remote AI inference is:
 
 ```text
-openai 3.0.0
+boto3 1.43.79
 ```
 
 ---
@@ -259,7 +267,11 @@ show ipv6 protocols
 
 # Device Collection
 
-The collector currently gathers:
+Collectors are selected from the inventory vendor/platform. Cisco IOS/IOS-XE,
+Juniper Junos, and Huawei VRP each provide their own command list and parser;
+all adapters return the common `models.device.DeviceInfo` representation.
+
+The original Cisco collector gathers:
 
 ```python
 def collect_ipv6_data(device):
@@ -334,7 +346,7 @@ The service:
 2. Finds the requested device.
 3. Connects to the device.
 4. Collects IPv6-related command output.
-5. Parses Cisco output.
+5. Parses output through the selected vendor adapter.
 6. Normalizes the device data.
 7. Applies the IPv6 assessment engine.
 8. Generates a finding summary.
@@ -792,91 +804,31 @@ Recommendations:
 
 ---
 
-# OpenAI API Integration
+# AWS Bedrock Runtime Integration
 
-The project uses the official OpenAI Python package.
+AWS is used only as a remote LLM inference backend. No component is deployed to
+AWS: the MCP server, Python application, inventory, and SSH connections remain
+on the developer's Mac. This project does not use AWS AgentCore, ECR, ECS,
+EKS, Lambda, or an AWS-hosted MCP server.
 
-Installed version:
+`aws_ai/bedrock_client.py` uses boto3's standard credential chain (AWS CLI
+profiles, environment credentials, or other supported local credential
+providers). It never reads credentials from source code or prints them.
 
-```text
-openai 3.0.0
-```
-
-The project uses the OpenAI Responses API.
-
-The API call was observed as:
-
-```text
-POST https://api.openai.com/v1/responses
-```
-
-The LLM agent therefore requires a valid OpenAI API key and an account/project with available API quota.
-
----
-
-# API Key
-
-An OpenAI API key is different from a normal ChatGPT subscription login.
-
-The key should be created from the OpenAI API platform and supplied to the application through an environment variable.
-
-Example:
+Configure only the region and model ID:
 
 ```bash
-export OPENAI_API_KEY="your_api_key_here"
+export AWS_REGION="us-east-1"
+export AWS_BEDROCK_MODEL_ID="your-enabled-bedrock-model-id"
 ```
 
-Then verify that the environment variable exists:
+The model ID is deliberately not hard-coded because enabled models and model
+availability vary by account and region. The client uses Bedrock Runtime's
+`Converse` API and validates the returned JSON report before returning it.
 
-```bash
-echo $OPENAI_API_KEY
-```
-
-Do **not** commit the API key into Git.
-
-A `.env` file should also be excluded from source control if it is used.
-
-Example `.gitignore` entry:
-
-```gitignore
-.env
-.venv/
-__pycache__/
-*.pyc
-```
-
----
-
-# OpenAI API Quota Issue
-
-During testing, the LLM agent returned:
-
-```text
-HTTP/1.1 429 Too Many Requests
-```
-
-The important error was:
-
-```text
-Error code: 429
-
-{
-  "error": {
-    "message": "You exceeded your current quota, please check your plan and billing details.",
-    "type": "insufficient_quota",
-    "param": null,
-    "code": "insufficient_quota"
-  }
-}
-```
-
-This is specifically an **`insufficient_quota`** error.
-
-It is not necessarily caused by sending requests too quickly.
-
-The API account/project needs available API quota or billing capacity.
-
-The MCP and IPv6 assessment portions of the project were working independently of this OpenAI API quota issue.
+Deterministic scoring and findings remain the factual assessment layer. The AI
+is instructed to interpret that data, distinguish facts from recommendations,
+and state unknown values as unknown.
 
 ---
 
@@ -890,7 +842,7 @@ The following components have been successfully tested:
 [OK] Cisco SSH connection
 [OK] Netmiko command execution
 [OK] Cisco IPv6 data collection
-[OK] Cisco output parsing
+[OK] Vendor adapter output parsing (Cisco, Juniper, Huawei fixtures)
 [OK] IPv6 assessment engine
 [OK] Deterministic scoring
 [OK] Finding summaries
@@ -903,11 +855,8 @@ The following components have been successfully tested:
 [OK] AI-style aggregate readiness report
 ```
 
-The remaining issue encountered during LLM testing was:
-
-```text
-[BLOCKED] OpenAI API quota / billing
-```
+AWS inference is intentionally not exercised by the offline unit suite; use an
+AWS profile with access to the configured model when running AI analysis.
 
 ---
 
@@ -939,16 +888,17 @@ Run the assessment agent:
 python agent.py
 ```
 
-For LLM-based functionality, configure:
+For AWS Bedrock AI analysis, configure:
 
 ```bash
-export OPENAI_API_KEY="your_api_key_here"
+export AWS_REGION="us-east-1"
+export AWS_BEDROCK_MODEL_ID="your-enabled-bedrock-model-id"
 ```
 
 Then run:
 
 ```bash
-python llm_agent.py
+python agent.py --ai
 ```
 
 ---
@@ -1015,6 +965,43 @@ This separation allows the network assessment logic to remain **deterministic an
 
 ---
 
+# Multi-vendor architecture
+
+Vendor-specific collection and parsing are isolated behind the adapter
+registry:
+
+```text
+Inventory vendor/platform
+          |
+          v
+Vendor adapter commands + parser
+  Cisco IOS/IOS-XE | Junos | VRP
+          |
+          v
+Normalized DeviceInfo
+          |
+          v
+Common IPv6 assessment rules
+          |
+          v
+Structured JSON → local MCP → AWS Bedrock AI analysis
+```
+
+Supported status:
+
+- Cisco IOS/IOS-XE: existing implementation preserved and covered by the
+  original parser plus fixture tests.
+- Juniper Junos: operational command adapter and fixture-driven normalization
+  for version, interfaces, IPv6 routes, OSPFv3, and BGP IPv6.
+- Huawei VRP: operational command adapter and fixture-driven normalization for
+  version, interfaces, IPv6 routes, OSPFv3, and BGP IPv6.
+
+Juniper and Huawei support is intentionally fixture-driven at this stage; no
+live-device connectivity is required by the offline test suite. MCP tool names
+remain vendor-neutral and use the adapter selected by inventory configuration.
+
+---
+
 # Current Test Topology
 
 ```text
@@ -1043,9 +1030,9 @@ The project has progressed from a basic MCP server to a working **end-to-end IPv
 
 The current implementation successfully:
 
-- Connects to Cisco devices.
+- Connects to configured network devices through their vendor adapter.
 - Collects IPv6 information.
-- Parses device information.
+- Parses and normalizes vendor-specific device information.
 - Evaluates IPv6 readiness.
 - Calculates readiness scores.
 - Generates findings.
@@ -1053,7 +1040,7 @@ The current implementation successfully:
 - Exposes assessment functionality through MCP.
 - Assesses multiple devices.
 - Produces an aggregate network readiness report.
-- Provides a foundation for LLM-based interpretation.
+- Provides a foundation for AWS Bedrock interpretation.
 
 Current test results:
 
@@ -1068,4 +1055,6 @@ Ready devices: 2
 Recommendations: 2
 ```
 
-The next major integration point is the **LLM agent**, which requires an OpenAI API project with available API quota.
+The optional AI integration is a local-to-Bedrock workflow. It requires an AWS
+profile with permission to invoke the configured Bedrock model; no deployment
+of this repository to AWS is required.

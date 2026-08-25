@@ -1,0 +1,6 @@
+FastEthernet0/0 [up/up]
+    FE80::1
+    2001:DB8:10::1/64
+FastEthernet0/1 [up/up]
+    FE80::2
+    2001:DB8:11::1/64

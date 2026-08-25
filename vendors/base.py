@@ -1,34 +1,5 @@
-from abc import ABC, abstractmethod
+"""Backward-compatible import for the active vendor adapter contract."""
 
-from models.device import DeviceInfo
+from vendors.base.adapter import VendorAdapter
 
-
-class VendorAdapter(ABC):
-    """
-    Common interface for all network vendors.
-
-    A vendor adapter is responsible for:
-    1. Providing vendor-specific commands
-    2. Normalizing vendor-specific CLI output
-       into the common DeviceInfo model
-    """
-
-    vendor: str = "Unknown"
-
-    @abstractmethod
-    def get_commands(self) -> list[str]:
-        """
-        Return the commands required for IPv6 assessment.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def parse(
-        self,
-        outputs: dict[str, str],
-    ) -> DeviceInfo:
-        """
-        Convert vendor-specific command output
-        into the common DeviceInfo model.
-        """
-        raise NotImplementedError
+__all__ = ["VendorAdapter"]

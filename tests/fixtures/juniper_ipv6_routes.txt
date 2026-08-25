@@ -1,0 +1,6 @@
+inet6.0: 3 destinations, 3 routes (3 active, 0 holddown, 0 hidden)
++ = Active Route, - = Last Active, * = Both
+2001:db8:20::/64    *[Direct/0] 00:12:03
+                    > via ge-0/0/0.0
+2001:db8:30::/64    *[OSPF3/10] 00:02:10, metric 2
+                    > to fe80::30 via ge-0/0/1.0

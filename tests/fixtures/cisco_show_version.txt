@@ -1,0 +1,2 @@
+Cisco 1841 (revision 5.0) with 114688K/16384K bytes of memory.
+Cisco IOS Software, 1841 Software (C1841-ADVIPSERVICESK9-M), Version 15.1(4)M9, RELEASE SOFTWARE (fc1)

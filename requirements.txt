@@ -1,0 +1,8 @@
+# Runtime dependencies
+boto3==1.43.79
+mcp==2.0.0
+netmiko==4.7.0
+PyYAML==6.0.3
+
+# Offline test dependency
+pytest==9.1.1

@@ -1,0 +1,4 @@
+Interface               Admin Link Proto    Local                 Remote
+ge-0/0/0.0              up    up   inet6    2001:db8:20::1/64
+ge-0/0/0.0              up    up   inet6    fe80::20/64
+ge-0/0/1.0              up    up   inet6    2001:db8:21::1/64

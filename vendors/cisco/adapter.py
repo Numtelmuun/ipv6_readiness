@@ -20,6 +20,9 @@ class CiscoAdapter(VendorAdapter):
             "show running-config | include ^hostname",
         ]
 
+    def get_ipv6_protocol_commands(self) -> list[str]:
+        return ["show ipv6 protocols"]
+
     def parse_outputs(self, outputs):
 
         return parse_ipv6_device_data(

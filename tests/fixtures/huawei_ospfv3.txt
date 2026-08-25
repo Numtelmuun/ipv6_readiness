@@ -1,0 +1,2 @@
+          OSPFv3 Process 1 with Router ID 192.0.2.3
+                  Neighbor Brief Information

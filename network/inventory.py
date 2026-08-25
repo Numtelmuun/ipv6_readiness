@@ -4,10 +4,10 @@ from network.ssh_client import NetworkDevice
 from vendors.registry import get_vendor_adapter
 
 
-def load_devices():
+def load_devices(inventory_path: str = "config/devices.yaml"):
 
     with open(
-        "config/devices.yaml",
+        inventory_path,
         "r",
         encoding="utf-8"
     ) as file:
@@ -19,7 +19,7 @@ def load_devices():
     for item in data["devices"]:
 
         adapter = get_vendor_adapter(
-            item["platform"]
+            item.get("vendor") or item["platform"]
         )
 
         device = NetworkDevice(

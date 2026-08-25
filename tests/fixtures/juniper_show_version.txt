@@ -1,0 +1,3 @@
+Hostname: R2
+Model: mx204
+Junos: 21.4R3-S2.4

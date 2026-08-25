@@ -6,7 +6,7 @@ from typing import Optional
 class IPv6Interface:
     name: str
     operational: bool = False
-    ipv6_enabled: bool = False
+    ipv6_enabled: Optional[bool] = False
     link_local: Optional[str] = None
     global_addresses: list[str] = field(
         default_factory=list
@@ -20,7 +20,7 @@ class IPv6Interface:
 
 @dataclass
 class IPv6Routing:
-    enabled: bool = False
+    enabled: Optional[bool] = False
     route_count: int = 0
     connected_routes: int = 0
     local_routes: int = 0
@@ -29,6 +29,14 @@ class IPv6Routing:
     ripng: bool = False
     eigrpv6: bool = False
     bgp_ipv6: bool = False
+    # Protocol names retain vendor-neutral context for reporting/AI while the
+    # boolean fields above keep the existing deterministic rules unchanged.
+    ipv4_protocols: list[str] = field(
+        default_factory=list
+    )
+    ipv6_protocols: list[str] = field(
+        default_factory=list
+    )
 
 @dataclass
 class DeviceInfo:

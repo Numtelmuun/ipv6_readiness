@@ -1,5 +1,6 @@
 from models.device import DeviceInfo
 from assessment.summary import summarize_findings
+from assessment.recommendations import generate_recommendations
 from assessment.rules import (
     check_ipv6_interfaces,
     check_global_ipv6_address,
@@ -86,4 +87,8 @@ def assess_ipv6(device: DeviceInfo):
         "readiness": readiness,
         "summary": summarize_findings(findings),
         "findings": findings,
+        "recommendations": generate_recommendations(
+            findings,
+            device,
+        ),
     }

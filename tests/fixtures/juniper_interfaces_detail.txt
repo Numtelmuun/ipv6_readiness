@@ -1,0 +1,6 @@
+Physical interface: ge-0/0/0, Enabled, Physical link is Up
+  Logical interface ge-0/0/0.0 (Index 333) (SNMP ifIndex 510)
+    Protocol inet6, MTU: 1500
+Physical interface: ge-0/0/1, Enabled, Physical link is Up
+  Logical interface ge-0/0/1.0 (Index 334) (SNMP ifIndex 511)
+    Protocol inet6, MTU: 1500

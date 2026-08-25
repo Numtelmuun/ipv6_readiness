@@ -1,0 +1,2 @@
+BGP local router ID : 192.0.2.3
+ Address Family: IPv6 Unicast
