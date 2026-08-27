@@ -6,11 +6,12 @@ from assessment.summary import summarize_findings
 ASSESSMENT_PAYLOAD_VERSION = "3.0"
 
 READINESS_PRIORITY = {
-    "INSUFFICIENT_DATA": 0,
-    "NOT_READY": 1,
-    "PARTIALLY_READY": 2,
-    "MOSTLY_READY": 3,
-    "READY": 4,
+    "REPLACEMENT_REQUIRED": 0,
+    "UPGRADE_REQUIRED": 1,
+    "UPGRADE_OR_REPLACE_REQUIRED": 2,
+    "CONFIGURATION_REQUIRED": 3,
+    "INSUFFICIENT_DATA": 4,
+    "READY": 5,
 }
 
 
@@ -39,7 +40,12 @@ def serialize_device_data(device):
         "platform": device.platform,
         "device_type": device.device_type,
         "required_routing_protocols": list(device.required_routing_protocols),
+        "required_ipv6_interfaces": device.required_ipv6_interfaces,
+        "supported_routing_protocols": device.supported_routing_protocols,
         "ipv6_supported": device.ipv6_supported,
+        "ipv6_addressing_capable": device.ipv6_addressing_capable,
+        "ipv6_forwarding_capable": device.ipv6_forwarding_capable,
+        "ipv6_routing_table_capable": device.ipv6_routing_table_capable,
         "ipv6_routing_enabled": device.ipv6_routing_enabled,
         "interfaces": [
             {
@@ -117,6 +123,11 @@ def assess_device(device_name: str):
 
     normalized.role = device.role
     normalized.platform = device.platform
+    normalized.device_type = device.device_type
+    if device.required_ipv6_interfaces is not None:
+        normalized.required_ipv6_interfaces = device.required_ipv6_interfaces
+    normalized.required_routing_protocols = list(device.required_routing_protocols)
+    normalized.supported_routing_protocols = device.supported_routing_protocols
 
     # ---------------------------------------------
     # Common IPv6 assessment engine
@@ -144,6 +155,10 @@ def assess_all_devices():
         "partially_ready": 0,
         "not_ready": 0,
         "insufficient_data": 0,
+        "configuration_required": 0,
+        "upgrade_required": 0,
+        "replacement_required": 0,
+        "upgrade_or_replace_required": 0,
     }
 
     scored_results = []
@@ -167,6 +182,14 @@ def assess_all_devices():
 
         elif readiness == "INSUFFICIENT_DATA":
             summary["insufficient_data"] += 1
+        elif readiness == "CONFIGURATION_REQUIRED":
+            summary["configuration_required"] += 1
+        elif readiness == "UPGRADE_REQUIRED":
+            summary["upgrade_required"] += 1
+        elif readiness == "REPLACEMENT_REQUIRED":
+            summary["replacement_required"] += 1
+        elif readiness == "UPGRADE_OR_REPLACE_REQUIRED":
+            summary["upgrade_or_replace_required"] += 1
 
         score = result.get("score")
         if isinstance(score, (int, float)):
@@ -218,6 +241,7 @@ def build_ai_assessment_payload(
         deterministic_assessment = {
             key: result.get(key)
             for key in (
+                "checklist",
                 "device",
                 "vendor",
                 "model",
@@ -226,6 +250,7 @@ def build_ai_assessment_payload(
                 "platform",
                 "device_type",
                 "required_routing_protocols",
+                "required_ipv6_interfaces",
                 "score",
                 "readiness",
                 "summary",
@@ -240,8 +265,13 @@ def build_ai_assessment_payload(
             }
         )
 
+    checklist = assessment.get("checklist")
+    if checklist is None and devices:
+        checklist = devices[0]["deterministic_assessment"].get("checklist")
+
     return {
         "schema_version": ASSESSMENT_PAYLOAD_VERSION,
+        "checklist": checklist,
         "network_name": network_name,
         "aggregate_assessment": {
             "source_of_truth": {
@@ -275,6 +305,7 @@ def build_ai_assessment_payload(
                 "Absence of an assessed addressing plan is unknown, not evidence that a plan is missing; recommend validating or reviewing the IPv6 addressing plan when the plan itself was not assessed, never developing one on that basis alone.",
                 "Label generic security, transition, routing, and replacement guidance as best_practice unless a deterministic finding supports it as a detected_deficiency, and include the supporting finding IDs for every detected_deficiency.",
                 "Preserve unknown values as unknown; do not infer or fill them.",
+                "Interpret remediation types and migration priorities, but never override the deterministic readiness classification.",
             ],
         },
         "devices": devices,

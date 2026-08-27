@@ -106,4 +106,8 @@ def parse_device_data(outputs: dict[str, str]) -> DeviceInfo:
     device.ipv6_routing_enabled = device.routing.enabled
     if any(interface.ipv6_enabled is True for interface in device.interfaces):
         device.ipv6_supported = True
+        device.ipv6_addressing_capable = True
+        device.ipv6_forwarding_capable = True
+        device.ipv6_routing_table_capable = device.routing.enabled
+        device.required_ipv6_interfaces = [i.name for i in device.interfaces if i.ipv6_enabled]
     return device

@@ -214,6 +214,16 @@ def parse_ipv6_device_data(
         device.routing.enabled
     )
 
+    # Successful IPv6 operational output is positive capability evidence. It
+    # does not require a global address or a learned dynamic route.
+    command_evidence = bool(device.interfaces) or device.routing.enabled is True
+    if command_evidence:
+        device.ipv6_supported = True
+        device.ipv6_addressing_capable = True
+        device.ipv6_forwarding_capable = True
+        device.ipv6_routing_table_capable = True
+        device.required_ipv6_interfaces = [i.name for i in device.interfaces if i.ipv6_enabled]
+
     return device
 
 def parse_hostname(output: str) -> str | None:

@@ -12,6 +12,10 @@ class NetworkDevice:
         password: str,
         role: str | None = None,
         adapter=None,
+        device_type: str = "unknown",
+        required_ipv6_interfaces: list[str] | None = None,
+        required_routing_protocols: list[str] | None = None,
+        supported_routing_protocols: list[str] | None = None,
     ):
         self.name = name
         self.host = host
@@ -20,6 +24,10 @@ class NetworkDevice:
         self.password = password
         self.role = role
         self.adapter = adapter
+        self.device_type = device_type
+        self.required_ipv6_interfaces = required_ipv6_interfaces
+        self.required_routing_protocols = required_routing_protocols or []
+        self.supported_routing_protocols = supported_routing_protocols
 
     def _connection_params(self):
 

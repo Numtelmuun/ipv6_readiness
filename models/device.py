@@ -52,8 +52,16 @@ class DeviceInfo:
     required_routing_protocols: list[str] = field(
         default_factory=list
     )
+    # None means the design requirement was not supplied; [] means no
+    # interfaces are required by design.
+    required_ipv6_interfaces: Optional[list[str]] = None
 
     ipv6_supported: Optional[bool] = None
+    ipv6_addressing_capable: Optional[bool] = None
+    ipv6_forwarding_capable: Optional[bool] = None
+    ipv6_routing_table_capable: Optional[bool] = None
+    # None means protocol capability was not inventoried.
+    supported_routing_protocols: Optional[list[str]] = None
     ipv6_routing_enabled: Optional[bool] = None
 
     interfaces: list[IPv6Interface] = field(

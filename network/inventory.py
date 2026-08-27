@@ -30,6 +30,10 @@ def load_devices(inventory_path: str = "config/devices.yaml"):
             password=item["password"],
             role=item.get("role"),
             adapter=adapter,
+            device_type=item.get("device_type", "unknown"),
+            required_ipv6_interfaces=item.get("required_ipv6_interfaces"),
+            required_routing_protocols=item.get("required_routing_protocols", []),
+            supported_routing_protocols=item.get("supported_routing_protocols"),
         )
 
         devices.append(device)

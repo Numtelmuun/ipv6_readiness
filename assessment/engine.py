@@ -1,97 +1,47 @@
 from models.device import DeviceInfo
 from assessment.summary import summarize_findings
 from assessment.recommendations import generate_recommendations
-from assessment.rules import (
-    check_ipv6_interfaces,
-    check_global_ipv6_address,
-    check_link_local,
-    check_ipv6_routing,
-    check_dynamic_routing,
-    check_ospfv3,
-    check_bgp_ipv6,
-    check_other_dynamic_routing,
-    check_multiple_ipv6_interfaces,
-)
+from assessment.rules import CHECKLIST_RULES
+
+CHECKLIST_METADATA = {"name": "IPv6 Readiness Checklist", "version": "1.0",
+                      "basis": "RIPE-772",
+                      "scope": "Basic IPv6 deployment capability and configuration readiness",
+                      "full_ripe_772_compliance": False}
+
+
+def classify_readiness(findings):
+    failed = [f for f in findings if f["status"] == "FAIL"]
+    remediation = {f["remediation"] for f in failed}
+    if "REPLACE" in remediation:
+        return "REPLACEMENT_REQUIRED"
+    if "UPGRADE" in remediation:
+        return "UPGRADE_REQUIRED"
+    if "UPGRADE_OR_REPLACE" in remediation:
+        return "UPGRADE_OR_REPLACE_REQUIRED"
+    if any(f["remediation"] == "CONFIGURE" for f in findings
+           if f["status"] in {"FAIL", "WARNING"}):
+        return "CONFIGURATION_REQUIRED"
+    if any(f["status"] == "UNKNOWN" for f in findings):
+        return "INSUFFICIENT_DATA"
+    applicable = [f for f in findings if f["status"] != "NOT_APPLICABLE"]
+    return "READY" if applicable and all(f["status"] == "PASS" for f in applicable) else "INSUFFICIENT_DATA"
 
 
 def assess_ipv6(device: DeviceInfo):
-
-    rules = [
-        check_ipv6_interfaces,
-        check_global_ipv6_address,
-        check_link_local,
-        check_ipv6_routing,
-        check_dynamic_routing,
-        check_ospfv3,
-        check_bgp_ipv6,
-        check_other_dynamic_routing,
-        check_multiple_ipv6_interfaces,
-    ]
-
-    findings = []
-
-    total_score = 0
-    maximum_score = 0
-
-    for rule in rules:
-
-        result = rule(device)
-
-        findings.append(result)
-
-        if result["status"] in [
-            "NOT_APPLICABLE",
-            "UNKNOWN",
-        ]:
-            continue
-
-        total_score += result["score"]
-        maximum_score += result["max_score"]
-    unknown_count = sum(
-        1
-        for finding in findings
-        if finding["status"] == "UNKNOWN"
-    )
-    if unknown_count > 0:
-        score = None
-        readiness = "INSUFFICIENT_DATA"
-
-    elif maximum_score > 0:
-        score = round(
-            (total_score / maximum_score) * 100,
-            2
-        )
-
-        if score >= 85:
-            readiness = "READY"
-
-        elif score >= 65:
-            readiness = "MOSTLY_READY"
-
-        elif score >= 40:
-            readiness = "PARTIALLY_READY"
-
-        else:
-            readiness = "NOT_READY"
-
-    else:
-        score = None
-        readiness = "INSUFFICIENT_DATA"
+    findings = [rule(device) for rule in CHECKLIST_RULES]
+    scored = [f for f in findings if f["status"] not in {"NOT_APPLICABLE", "UNKNOWN"}]
+    score = None
+    if not any(f["status"] == "UNKNOWN" for f in findings) and scored:
+        maximum = sum(f["max_score"] for f in scored)
+        score = round(sum(f["score"] for f in scored) / maximum * 100, 2) if maximum else None
     return {
-        "device": device.hostname,
-        "vendor": device.vendor,
-        "model": device.model,
-        "os_version": device.os_version,
-        "role": device.role,
-        "platform": device.platform,
-        "device_type": device.device_type,
+        "checklist": dict(CHECKLIST_METADATA), "device": device.hostname, "vendor": device.vendor,
+        "model": device.model, "os_version": device.os_version, "role": device.role,
+        "platform": device.platform, "device_type": device.device_type,
         "required_routing_protocols": list(device.required_routing_protocols),
-        "score": score,
-        "readiness": readiness,
-        "summary": summarize_findings(findings),
-        "findings": findings,
-        "recommendations": generate_recommendations(
-            findings,
-            device,
-        ),
+        "required_ipv6_interfaces": (None if device.required_ipv6_interfaces is None
+                                     else list(device.required_ipv6_interfaces)),
+        "score": score, "readiness": classify_readiness(findings),
+        "summary": summarize_findings(findings), "findings": findings,
+        "recommendations": generate_recommendations(findings, device),
     }

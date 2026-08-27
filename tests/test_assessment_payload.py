@@ -78,13 +78,13 @@ def test_absent_optional_routing_protocols_create_no_recommendations():
 
     assert "recommendations" in result
     assert not any(
-        item["id"] in {"IPV6-05", "IPV6-06", "IPV6-07", "IPV6-08"}
+        item["id"] in {"IPV6-07", "IPV6-08"}
         for item in result["recommendations"]
     )
     routing_findings = {
         finding["id"]: finding
         for finding in result["findings"]
-        if finding["id"] in {"IPV6-05", "IPV6-06", "IPV6-07", "IPV6-08"}
+        if finding["id"] in {"IPV6-07", "IPV6-08"}
     }
     assert all(
         finding["status"] == "NOT_APPLICABLE"
@@ -92,7 +92,7 @@ def test_absent_optional_routing_protocols_create_no_recommendations():
     )
 
 
-def test_explicitly_required_absent_protocol_is_warning_and_recommendation():
+def test_explicitly_required_absent_protocol_is_unknown_without_capability_evidence():
     device = DeviceInfo(
         hostname="CORE-R1",
         vendor="Cisco",
@@ -106,9 +106,10 @@ def test_explicitly_required_absent_protocol_is_warning_and_recommendation():
     )
 
     result = assess_ipv6(device)
-    bgp = next(item for item in result["findings"] if item["id"] == "IPV6-07")
-    assert bgp["status"] == "WARNING"
-    assert any(item["id"] == "IPV6-07" for item in result["recommendations"])
+    bgp = next(item for item in result["findings"] if item["id"] == "IPV6-08")
+    assert bgp["status"] == "UNKNOWN"
+    assert bgp["remediation"] == "VERIFY"
+    assert any(item["id"] == "IPV6-08" for item in result["recommendations"])
 
 
 def test_present_protocol_does_not_hide_a_different_required_protocol():
@@ -120,9 +121,9 @@ def test_present_protocol_does_not_hide_a_different_required_protocol():
     )
 
     result = assess_ipv6(device)
-    other = next(item for item in result["findings"] if item["id"] == "IPV6-08")
-    assert other["status"] == "WARNING"
-    assert "ripng" in other["message"]
+    other = next(item for item in result["findings"] if item["id"] == "IPV6-07")
+    assert other["status"] == "UNKNOWN"
+    assert "ripng" in other["evidence"]
 
 
 def test_mcp_client_preserves_multiple_content_blocks():
