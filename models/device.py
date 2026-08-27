@@ -47,6 +47,11 @@ class DeviceInfo:
     os_version: Optional[str] = None
 
     role: Optional[str] = None
+    platform: Optional[str] = None
+    device_type: str = "unknown"
+    required_routing_protocols: list[str] = field(
+        default_factory=list
+    )
 
     ipv6_supported: Optional[bool] = None
     ipv6_routing_enabled: Optional[bool] = None

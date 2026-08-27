@@ -7,7 +7,10 @@ import asyncio
 import json
 from pathlib import Path
 
-from assessment.service import build_ai_assessment_payload
+from assessment.service import (
+    build_ai_assessment_payload,
+    build_final_assessment_report,
+)
 from aws_ai.bedrock_client import BedrockIPv6Client
 from mcp_client import call_tool
 
@@ -26,7 +29,8 @@ async def build_assessment_payload(network_name: str) -> dict:
 async def run_ai_assessment(network_name: str) -> dict:
     """Send only the completed credential-free assessment to Bedrock."""
     payload = await build_assessment_payload(network_name)
-    return BedrockIPv6Client().assess(payload).to_dict()
+    ai_report = BedrockIPv6Client().assess(payload).to_dict()
+    return build_final_assessment_report(payload, ai_report)
 
 
 def generate_report(data: dict) -> None:

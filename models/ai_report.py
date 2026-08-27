@@ -23,14 +23,6 @@ JSON_OBJECT_LIST_FIELDS = (
     "next_steps",
 )
 
-ALLOWED_READINESS = {
-    "READY",
-    "PARTIALLY_READY",
-    "NOT_READY",
-    "INSUFFICIENT_DATA",
-}
-
-
 def _object_list(value: Any, field_name: str) -> list[dict[str, Any]]:
     if not isinstance(value, list):
         raise AIReportValidationError(f"{field_name} must be a JSON array.")
@@ -43,10 +35,38 @@ def _object_list(value: Any, field_name: str) -> list[dict[str, Any]]:
     return value
 
 
+def _validate_device_assessments(items: list[dict[str, Any]]) -> None:
+    for index, item in enumerate(items):
+        identifier = item.get("device", item.get("hostname"))
+        if not isinstance(identifier, str) or not identifier.strip():
+            raise AIReportValidationError(
+                f"device_assessments[{index}] must include a non-empty "
+                "device or hostname identifier."
+            )
+
+
+def _validate_recommendations(
+    items: list[dict[str, Any]], field_name: str
+) -> None:
+    for index, item in enumerate(items):
+        recommendation_type = item.get("recommendation_type")
+        if recommendation_type not in {"detected_deficiency", "best_practice"}:
+            raise AIReportValidationError(
+                f"{field_name}[{index}].recommendation_type must be "
+                "detected_deficiency or best_practice."
+            )
+        if recommendation_type == "detected_deficiency" and not item.get(
+            "finding_ids"
+        ):
+            raise AIReportValidationError(
+                f"{field_name}[{index}] detected_deficiency must include "
+                "finding_ids."
+            )
+
+
 @dataclass(frozen=True)
 class AIReport:
-    overall_readiness: str
-    overall_score: float | None
+    """Interpretive-only Bedrock response prior to deterministic composition."""
     executive_summary: str
     critical_issues: list[dict[str, Any]]
     device_assessments: list[dict[str, Any]]
@@ -64,8 +84,6 @@ class AIReport:
             raise AIReportValidationError("AI response must be a JSON object.")
 
         required = {
-            "overall_readiness",
-            "overall_score",
             "executive_summary",
             *JSON_OBJECT_LIST_FIELDS,
         }
@@ -73,23 +91,6 @@ class AIReport:
         if missing:
             raise AIReportValidationError(
                 "AI response is missing required field(s): " + ", ".join(missing)
-            )
-
-        readiness = data["overall_readiness"]
-        if readiness not in ALLOWED_READINESS:
-            raise AIReportValidationError(
-                "overall_readiness must be one of: "
-                + ", ".join(sorted(ALLOWED_READINESS))
-            )
-
-        score = data["overall_score"]
-        if score is not None and (
-            not isinstance(score, (int, float))
-            or isinstance(score, bool)
-            or not 0 <= score <= 100
-        ):
-            raise AIReportValidationError(
-                "overall_score must be a number from 0 to 100 or null."
             )
 
         summary = data["executive_summary"]
@@ -100,10 +101,16 @@ class AIReport:
             field_name: _object_list(data[field_name], field_name)
             for field_name in JSON_OBJECT_LIST_FIELDS
         }
+        _validate_device_assessments(lists["device_assessments"])
+        for field_name in (
+            "configuration_recommendations",
+            "routing_recommendations",
+            "transition_recommendations",
+            "device_replacements",
+        ):
+            _validate_recommendations(lists[field_name], field_name)
 
         return cls(
-            overall_readiness=readiness,
-            overall_score=float(score) if score is not None else None,
             executive_summary=summary,
             **lists,
         )

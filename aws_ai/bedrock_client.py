@@ -22,20 +22,20 @@ as unknown. Clearly distinguish collected facts, deterministic findings, and
 your recommendations.
 
 Return JSON only, with exactly these fields:
-overall_readiness, overall_score, executive_summary, critical_issues,
-device_assessments, configuration_recommendations, routing_recommendations,
+executive_summary, critical_issues, device_assessments,
+configuration_recommendations, routing_recommendations,
 transition_recommendations, device_replacements, migration_priorities, risks,
 next_steps.
 
-overall_readiness must be READY, PARTIALLY_READY, NOT_READY, or
-INSUFFICIENT_DATA. overall_score must be a number from 0 to 100 or null. Every
-other listed field except executive_summary must be an array of JSON objects.
-Each recommendation object must state its basis and avoid claiming unsupported
-features. Assess overall readiness, critical problems, affected devices and
-their deterministic reasons, required configuration changes, routing approach,
-transition mechanisms when appropriate, replacement needs, migration
-priorities, risks, caveats, and next steps. Empty arrays are valid when the
-input does not support a conclusion."""
+Every listed field except executive_summary must be an array of JSON objects.
+Each device_assessments entry must contain only the exact device or hostname
+identifier from the input plus interpretive content. Do not echo or generate
+vendor, model, platform, device_type, role, score, or readiness; local report
+composition supplies those deterministic fields. Omit a device rather than
+inventing an identifier. Each recommendation must state its basis, use
+recommendation_type best_practice or detected_deficiency, and include finding_ids
+for a detected deficiency. Empty arrays are valid when the input does not
+support a conclusion."""
 
 
 class BedrockConfigurationError(ValueError):

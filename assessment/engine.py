@@ -47,11 +47,11 @@ def assess_ipv6(device: DeviceInfo):
 
         total_score += result["score"]
         maximum_score += result["max_score"]
-        unknown_count = sum(
-    1
-    for finding in findings
-    if finding["status"] == "UNKNOWN"
-)
+    unknown_count = sum(
+        1
+        for finding in findings
+        if finding["status"] == "UNKNOWN"
+    )
     if unknown_count > 0:
         score = None
         readiness = "INSUFFICIENT_DATA"
@@ -83,6 +83,9 @@ def assess_ipv6(device: DeviceInfo):
         "model": device.model,
         "os_version": device.os_version,
         "role": device.role,
+        "platform": device.platform,
+        "device_type": device.device_type,
+        "required_routing_protocols": list(device.required_routing_protocols),
         "score": score,
         "readiness": readiness,
         "summary": summarize_findings(findings),

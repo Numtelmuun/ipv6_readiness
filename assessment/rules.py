@@ -1,6 +1,33 @@
 from models.device import DeviceInfo
 
 
+PROTOCOL_ALIASES = {
+    "ospf": "ospfv3",
+    "ospfv3": "ospfv3",
+    "bgp": "bgp_ipv6",
+    "bgp ipv6": "bgp_ipv6",
+    "ipv6 bgp": "bgp_ipv6",
+    "bgp_ipv6": "bgp_ipv6",
+    "ripng": "ripng",
+    "eigrpv6": "eigrpv6",
+}
+
+
+def required_protocols(device: DeviceInfo) -> set[str]:
+    return {
+        PROTOCOL_ALIASES.get(str(protocol).strip().lower(), str(protocol).strip().lower())
+        for protocol in device.required_routing_protocols
+    }
+
+
+def detected_protocols(device: DeviceInfo) -> set[str]:
+    return {
+        name
+        for name in ("ospfv3", "ripng", "eigrpv6", "bgp_ipv6")
+        if getattr(device.routing, name)
+    }
+
+
 def check_ipv6_interfaces(device: DeviceInfo):
 
     if not device.interfaces:
@@ -217,8 +244,10 @@ def check_dynamic_routing(device):
     if device.routing.bgp_ipv6:
         dynamic_protocols.append("BGP IPv6")
 
-    # Dynamic routing is not required for edge routers
-    if device.role == "edge" and not dynamic_protocols:
+    required = required_protocols(device)
+    missing_required = required - detected_protocols(device)
+
+    if not required and not dynamic_protocols:
 
         return {
             "id": "IPV6-05",
@@ -227,12 +256,12 @@ def check_dynamic_routing(device):
             "score": 0,
             "max_score": 15,
             "message": (
-                "Dynamic IPv6 routing is not required "
-                "for this edge router."
+                "No dynamic IPv6 routing protocol is explicitly required "
+                "for this device."
             ),
         }
 
-    if dynamic_protocols:
+    if dynamic_protocols and not missing_required:
 
         return {
             "id": "IPV6-05",
@@ -253,13 +282,13 @@ def check_dynamic_routing(device):
         "score": 0,
         "max_score": 15,
         "message": (
-            "No IPv6 dynamic routing protocol "
-            "was detected."
+            "Required IPv6 routing protocol(s) not detected: "
+            + ", ".join(sorted(missing_required))
         ),
     }
 def check_ospfv3(device):
 
-    if device.role == "edge" and not device.routing.ospfv3:
+    if "ospfv3" not in required_protocols(device) and not device.routing.ospfv3:
 
         return {
             "id": "IPV6-06",
@@ -268,8 +297,7 @@ def check_ospfv3(device):
             "score": 0,
             "max_score": 5,
             "message": (
-                "OSPFv3 is not required for "
-                "this edge router."
+                "OSPFv3 is not explicitly required for this device."
             ),
         }
 
@@ -294,7 +322,7 @@ def check_ospfv3(device):
     }
 def check_bgp_ipv6(device):
 
-    if device.role == "edge" and not device.routing.bgp_ipv6:
+    if "bgp_ipv6" not in required_protocols(device) and not device.routing.bgp_ipv6:
 
         return {
             "id": "IPV6-07",
@@ -303,8 +331,7 @@ def check_bgp_ipv6(device):
             "score": 0,
             "max_score": 5,
             "message": (
-                "IPv6 BGP is not required "
-                "for this edge router."
+                "IPv6 BGP is not explicitly required for this device."
             ),
         }
 
@@ -329,6 +356,23 @@ def check_bgp_ipv6(device):
     }
 def check_other_dynamic_routing(device):
 
+    required = required_protocols(device) & {"ripng", "eigrpv6"}
+    detected = detected_protocols(device) & {"ripng", "eigrpv6"}
+
+    if required - detected:
+
+        return {
+            "id": "IPV6-08",
+            "name": "RIPng/EIGRPv6",
+            "status": "WARNING",
+            "score": 0,
+            "max_score": 5,
+            "message": (
+                "Required routing protocol(s) not detected: "
+                + ", ".join(sorted(required - detected))
+            ),
+        }
+
     if device.routing.ripng:
 
         return {
@@ -351,7 +395,7 @@ def check_other_dynamic_routing(device):
             "message": "EIGRPv6 detected.",
         }
 
-    if device.role == "edge":
+    if not required:
 
         return {
             "id": "IPV6-08",
@@ -360,21 +404,11 @@ def check_other_dynamic_routing(device):
             "score": 0,
             "max_score": 5,
             "message": (
-                "RIPng/EIGRPv6 is not required "
-                "for this edge router."
+                "RIPng/EIGRPv6 is not explicitly required for this device."
             ),
         }
 
-    return {
-        "id": "IPV6-08",
-        "name": "RIPng/EIGRPv6",
-        "status": "WARNING",
-        "score": 0,
-        "max_score": 5,
-        "message": (
-            "Neither RIPng nor EIGRPv6 detected."
-        ),
-    }
+    raise AssertionError("required RIPng/EIGRPv6 state was not resolved")
 def check_multiple_ipv6_interfaces(device: DeviceInfo):
 
     if not device.interfaces:

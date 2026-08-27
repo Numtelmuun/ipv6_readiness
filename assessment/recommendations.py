@@ -51,8 +51,8 @@ def generate_recommendations(findings, device):
                     "id": finding["id"],
                     "severity": "MEDIUM",
                     "recommendation": (
-                        "Configure an IPv6 dynamic routing protocol "
-                        "if dynamic routing is required for this device."
+                        "Configure the IPv6 routing protocol explicitly "
+                        "required for this device."
                     )
                 })
 
@@ -61,8 +61,8 @@ def generate_recommendations(findings, device):
                     "id": finding["id"],
                     "severity": "LOW",
                     "recommendation": (
-                        "Configure IPv6 BGP only if this device "
-                        "requires external IPv6 routing."
+                        "Configure IPv6 BGP because the deterministic "
+                        "input explicitly marks it as required."
                     )
                 })
 
@@ -71,8 +71,8 @@ def generate_recommendations(findings, device):
                     "id": finding["id"],
                     "severity": "LOW",
                     "recommendation": (
-                        "Configure RIPng or EIGRPv6 only if required "
-                        "by the network routing design."
+                        "Configure the RIPng or EIGRPv6 protocol explicitly "
+                        "required by the deterministic input."
                     )
                 })
 

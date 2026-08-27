@@ -9,8 +9,6 @@ from aws_ai.bedrock_client import BedrockIPv6Client, BedrockInvocationError
 def valid_report_json():
     return json.dumps(
         {
-            "overall_readiness": "READY",
-            "overall_score": 90,
             "executive_summary": "Assessment interpreted from deterministic data.",
             "critical_issues": [],
             "device_assessments": [],
@@ -53,17 +51,19 @@ def test_bedrock_request_and_response_are_validated():
 
     report = client.assess({"network_name": "Lab", "devices": []})
 
-    assert report.overall_readiness == "READY"
+    assert report.executive_summary.startswith("Assessment interpreted")
     request = runtime.requests[0]
     assert request["modelId"] == "example.model"
     assert "Lab" in request["messages"][0]["content"][0]["text"]
     assert "IPv6 network migration" in request["system"][0]["text"]
+    assert "Do not echo or generate" in request["system"][0]["text"]
+    assert "overall_score" not in request["system"][0]["text"]
 
 
 def test_bedrock_extracts_fenced_json_and_rejects_invalid_report():
     runtime = FakeRuntimeClient([success_response("```json\n" + valid_report_json() + "\n```")])
     client = BedrockIPv6Client("model", "us-east-1", runtime, sleep_fn=lambda _: None)
-    assert client.assess({}).overall_score == 90.0
+    assert client.assess({}).executive_summary.startswith("Assessment interpreted")
 
     invalid_runtime = FakeRuntimeClient([success_response("not-json")])
     invalid_client = BedrockIPv6Client("model", "us-east-1", invalid_runtime)
@@ -78,7 +78,7 @@ def test_bedrock_retries_transient_error_and_handles_nontransient_error():
     )
     runtime = FakeRuntimeClient([throttled, success_response()])
     client = BedrockIPv6Client("model", "us-east-1", runtime, sleep_fn=lambda _: None)
-    assert client.assess({}).overall_readiness == "READY"
+    assert client.assess({}).critical_issues == []
     assert len(runtime.requests) == 2
 
     denied = ClientError(
