@@ -187,20 +187,23 @@ def check_interface_coverage(d):
     if not req:
         return finding("IPV6-09", "Required interface coverage", "NOT_APPLICABLE", "CONFIGURATION",
                        "The topology/design does not require interface coverage.")
-    ready = [n for n, i in req if i and i.ipv6_enabled is True]
-    if len(ready) == len(req):
-        return finding("IPV6-09", "Required interface coverage", "PASS", "CONFIGURATION",
-                       "All known required L3 interfaces are IPv6-ready.", evidence=ready)
-    if ready:
-        return finding("IPV6-09", "Required interface coverage", "WARNING", "CONFIGURATION",
-                       "Only some required L3 interfaces are IPv6-ready.", "CONFIGURE", ready)
-    if any(i is None or i.ipv6_enabled is None for _, i in req):
+    unconfigured = [n for n, i in req if i is not None and i.ipv6_enabled is False]
+    if unconfigured:
+        return finding("IPV6-09", "Required interface coverage", "FAIL", "CONFIGURATION",
+                       "Known required L3 interfaces are not configured for IPv6.", "CONFIGURE",
+                       unconfigured, "configuration_missing")
+    if any(i is None or i.ipv6_enabled is None or i.operational is None for _, i in req):
         return finding("IPV6-09", "Required interface coverage", "UNKNOWN", "CONFIGURATION",
                        "Required interface readiness cannot be fully determined.", "VERIFY",
                        [n for n, _ in req])
-    return finding("IPV6-09", "Required interface coverage", "FAIL", "CONFIGURATION",
-                   "Known required L3 interfaces are not IPv6-ready.", "CONFIGURE",
-                   [n for n, _ in req], "configuration_missing")
+    down = [n for n, i in req if i.operational is False]
+    if down:
+        return finding("IPV6-09", "Required interface coverage", "WARNING", "CONFIGURATION",
+                       "Required interfaces are IPv6-configured but operationally down.", "VERIFY",
+                       down)
+    return finding("IPV6-09", "Required interface coverage", "PASS", "CONFIGURATION",
+                   "All required IPv6 interfaces are configured and operational.",
+                   evidence=[n for n, _ in req])
 
 
 CHECKLIST_RULES = [check_basic_capability, check_addressing_capability,

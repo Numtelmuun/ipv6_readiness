@@ -47,12 +47,13 @@ def generate_report(data: dict) -> None:
     print("\nReadiness:")
     for status, key in (
         ("READY", "ready"),
-        ("MOSTLY_READY", "mostly_ready"),
-        ("PARTIALLY_READY", "partially_ready"),
-        ("NOT_READY", "not_ready"),
+        ("CONFIGURATION_REQUIRED", "configuration_required"),
+        ("UPGRADE_REQUIRED", "upgrade_required"),
+        ("REPLACEMENT_REQUIRED", "replacement_required"),
+        ("UPGRADE_OR_REPLACE_REQUIRED", "upgrade_or_replace_required"),
         ("INSUFFICIENT_DATA", "insufficient_data"),
     ):
-        print(f"  {status:18} {summary.get(key, 0)}")
+        print(f"  {status:28} {summary.get(key, 0)}")
 
     print("\nDevices:")
     for device in data["devices"]:

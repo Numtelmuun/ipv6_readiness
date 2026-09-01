@@ -23,6 +23,9 @@ def classify_readiness(findings):
         return "CONFIGURATION_REQUIRED"
     if any(f["status"] == "UNKNOWN" for f in findings):
         return "INSUFFICIENT_DATA"
+    if any(f["status"] == "WARNING" and f["category"] == "CONFIGURATION"
+           for f in findings):
+        return "CONFIGURATION_REQUIRED"
     applicable = [f for f in findings if f["status"] != "NOT_APPLICABLE"]
     return "READY" if applicable and all(f["status"] == "PASS" for f in applicable) else "INSUFFICIENT_DATA"
 

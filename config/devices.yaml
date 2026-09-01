@@ -6,6 +6,7 @@ devices:
     role: edge
     username: cisco
     password: cisco
+    required_routing_protocols: []
 
   - name: R3
     host: 10.3.128.63
@@ -13,4 +14,4 @@ devices:
     role: core
     username: cisco
     password: cisco
-    
+    required_routing_protocols: [ospfv3]

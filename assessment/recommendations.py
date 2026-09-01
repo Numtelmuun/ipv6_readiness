@@ -7,6 +7,16 @@ def generate_recommendations(findings, device):
             "UPGRADE": "Upgrade the device software as established by deterministic evidence.",
             "REPLACE": "Replace the platform as established by deterministic evidence.",
             "UPGRADE_OR_REPLACE": "Determine whether an OS upgrade is sufficient; otherwise replace the platform."}
-    return [{"id": f["id"], "severity": severity[f["remediation"]],
-             "remediation": f["remediation"], "recommendation": text[f["remediation"]]}
-            for f in findings if f.get("remediation") != "NONE" and f["status"] != "NOT_APPLICABLE"]
+    recommendations = []
+    for finding in findings:
+        remediation = finding.get("remediation")
+        if remediation == "NONE" or finding["status"] == "NOT_APPLICABLE":
+            continue
+        recommendation = text[remediation]
+        if (finding["id"] == "IPV6-09" and finding["status"] == "WARNING"
+                and remediation == "VERIFY"):
+            recommendation = "Verify the required interface operational state and link condition."
+        recommendations.append({"id": finding["id"], "severity": severity[remediation],
+                                "remediation": remediation,
+                                "recommendation": recommendation})
+    return recommendations

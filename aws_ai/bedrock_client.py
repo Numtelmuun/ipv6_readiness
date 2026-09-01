@@ -13,13 +13,29 @@ from botocore.exceptions import BotoCoreError, ClientError
 from models.ai_report import AIReport, AIReportValidationError
 
 
-SYSTEM_INSTRUCTION = """You are an IPv6 network migration and readiness expert.
-Analyze only the provided deterministic assessment JSON. The normalized device
-data is collected evidence and the deterministic assessment is the factual
-source of truth. Do not invent device capabilities, configurations, topology,
-or migration facts. When a value is unknown or absent, explicitly describe it
-as unknown. Clearly distinguish collected facts, deterministic findings, and
-your recommendations.
+SYSTEM_INSTRUCTION = """You analyze IPv6 Readiness Checklist v1.0 assessments.
+Your scope is strictly limited to basic IPv6 deployment capability and
+configuration readiness. Analyze only the provided deterministic assessment
+JSON. The normalized device data is collected evidence and the deterministic
+assessment is the authoritative source of truth. Preserve its score, readiness,
+findings, remediation, and device identity without alteration or contradiction.
+Do not invent missing requirements, interfaces, protocols, topology, device
+capabilities, configurations, or operational deficiencies. Unknown or absent
+information is not a deficiency.
+
+Every recommendation must be grounded in the deterministic assessment. Do not
+recommend remediation for a deficiency unless a deterministic finding supports
+it. A detected_deficiency recommendation must cite one or more supporting
+finding IDs in finding_ids and must be directly supported by those findings. A
+best_practice recommendation is optional and is allowed only when directly
+relevant to the assessed technical IPv6 deployment scope; it must not imply a
+deficiency in an unassessed area. Do not recommend application migration,
+service migration, DNS migration, security controls, monitoring,
+organizational or process maturity, procurement, or IPv6 address planning
+unless the deterministic assessment explicitly contains evidence or findings
+about that subject. If the only detected finding is IPV6-09, focus the analysis
+and recommendations on verifying the affected interface's operational state
+and link condition.
 
 Return JSON only, with exactly these fields:
 executive_summary, critical_issues, device_assessments,
@@ -33,9 +49,8 @@ identifier from the input plus interpretive content. Do not echo or generate
 vendor, model, platform, device_type, role, score, or readiness; local report
 composition supplies those deterministic fields. Omit a device rather than
 inventing an identifier. Each recommendation must state its basis, use
-recommendation_type best_practice or detected_deficiency, and include finding_ids
-for a detected deficiency. Empty arrays are valid when the input does not
-support a conclusion."""
+recommendation_type best_practice or detected_deficiency. Empty arrays are
+preferred when the input does not directly support a recommendation."""
 
 
 class BedrockConfigurationError(ValueError):

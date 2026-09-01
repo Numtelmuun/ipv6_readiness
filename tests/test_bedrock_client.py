@@ -55,8 +55,14 @@ def test_bedrock_request_and_response_are_validated():
     request = runtime.requests[0]
     assert request["modelId"] == "example.model"
     assert "Lab" in request["messages"][0]["content"][0]["text"]
-    assert "IPv6 network migration" in request["system"][0]["text"]
-    assert "Do not echo or generate" in request["system"][0]["text"]
+    system_instruction = request["system"][0]["text"]
+    normalized_instruction = " ".join(system_instruction.split())
+    assert "basic IPv6 deployment capability and configuration readiness" in normalized_instruction
+    assert "detected_deficiency recommendation must cite" in system_instruction
+    assert "application migration" in system_instruction
+    assert "IPv6 address planning" in system_instruction
+    assert "If the only detected finding is IPV6-09" in system_instruction
+    assert "Do not echo or generate" in system_instruction
     assert "overall_score" not in request["system"][0]["text"]
 
 

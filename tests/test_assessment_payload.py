@@ -178,8 +178,14 @@ def test_ai_contract_guards_against_unsupported_recommendations():
     instructions = " ".join(payload["ai_interpretation_contract"]["instructions"])
 
     assert "unspecified or remaining interfaces" in instructions
-    assert "validating or reviewing the IPv6 addressing plan" in instructions
+    assert "basic IPv6 deployment capability and configuration readiness" in instructions
+    assert "unless a deterministic finding directly supports it" in instructions
+    assert "directly supporting deterministic finding IDs" in instructions
     assert "best_practice" in instructions
+    assert "application migration" in instructions
+    assert "IPv6 address planning" in instructions
+    assert "IPV6-09" in instructions
+    assert "operational state and link condition" in instructions
     assert "Preserve unknown values as unknown" in instructions
 
 

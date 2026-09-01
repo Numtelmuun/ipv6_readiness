@@ -8,7 +8,8 @@ def capable(**overrides):
                   ipv6_routing_table_capable=True, ipv6_routing_enabled=True,
                   required_ipv6_interfaces=["Gi0/0"], required_routing_protocols=[],
                   supported_routing_protocols=["ospfv3", "bgp_ipv6"],
-                  interfaces=[IPv6Interface("Gi0/0", ipv6_enabled=True, link_local="fe80::1")],
+                  interfaces=[IPv6Interface("Gi0/0", operational=True, ipv6_enabled=True,
+                                            link_local="fe80::1")],
                   routing=IPv6Routing(enabled=True, connected_routes=1))
     values.update(overrides)
     return DeviceInfo(**values)
@@ -64,14 +65,35 @@ def test_scenario_e_conditional_routing():
     assert edge["score"] == 100
 
 
-def test_partial_interface_coverage_is_warning():
+def test_known_unconfigured_required_interface_is_failure():
     device = capable(required_ipv6_interfaces=["Gi0/0", "Gi0/1"], interfaces=[
-        IPv6Interface("Gi0/0", ipv6_enabled=True, link_local="fe80::1"),
+        IPv6Interface("Gi0/0", operational=True, ipv6_enabled=True, link_local="fe80::1"),
         IPv6Interface("Gi0/1", ipv6_enabled=False),
     ])
     result = assess_ipv6(device)
-    assert by_id(result, "IPV6-09")["status"] == "WARNING"
+    assert by_id(result, "IPV6-09")["status"] == "FAIL"
     assert result["readiness"] == "CONFIGURATION_REQUIRED"
+
+
+def test_ipv6_configured_required_interface_down_is_warning():
+    device = capable(interfaces=[
+        IPv6Interface("Gi0/0", operational=False, ipv6_enabled=True,
+                      link_local="fe80::1", global_addresses=["2001:db8::1/64"]),
+    ])
+    result = assess_ipv6(device)
+    finding = by_id(result, "IPV6-09")
+    assert finding["status"] == "WARNING"
+    assert finding["category"] == "CONFIGURATION"
+    assert finding["remediation"] == "VERIFY"
+    assert "IPv6-configured but operationally down" in finding["message"]
+    assert finding["evidence"] == ["Gi0/0"]
+    assert result["readiness"] == "CONFIGURATION_REQUIRED"
+    recommendation = next(r for r in result["recommendations"] if r["id"] == "IPV6-09")
+    assert recommendation["remediation"] == "VERIFY"
+    assert recommendation["recommendation"] == (
+        "Verify the required interface operational state and link condition."
+    )
+    assert "Collect or verify the evidence" not in recommendation["recommendation"]
 
 
 def test_nonempty_global_address_is_not_required_to_prove_addressing_capability():
