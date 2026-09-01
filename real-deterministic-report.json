@@ -1,0 +1,439 @@
+{
+  "summary": {
+    "total_devices": 2,
+    "ready": 2,
+    "mostly_ready": 0,
+    "partially_ready": 0,
+    "not_ready": 0,
+    "insufficient_data": 0,
+    "configuration_required": 0,
+    "upgrade_required": 0,
+    "replacement_required": 0,
+    "upgrade_or_replace_required": 0
+  },
+  "average_score": 100.0,
+  "readiness": "READY",
+  "recommendation_count": 0,
+  "recommendations": [],
+  "devices": [
+    {
+      "checklist": {
+        "name": "IPv6 Readiness Checklist",
+        "version": "1.0",
+        "basis": "RIPE-772",
+        "scope": "Basic IPv6 deployment capability and configuration readiness",
+        "full_ripe_772_compliance": false
+      },
+      "device": "R1",
+      "vendor": "Cisco",
+      "model": "1841",
+      "os_version": "15.1(4)M9",
+      "role": "edge",
+      "platform": "cisco_ios",
+      "device_type": "unknown",
+      "required_routing_protocols": [],
+      "required_ipv6_interfaces": [
+        "FastEthernet0/1"
+      ],
+      "score": 100.0,
+      "readiness": "READY",
+      "summary": {
+        "pass": 7,
+        "fail": 0,
+        "warning": 0,
+        "unknown": 0,
+        "not_applicable": 2
+      },
+      "findings": [
+        {
+          "id": "IPV6-01",
+          "name": "Basic IPv6 capability",
+          "status": "PASS",
+          "category": "CAPABILITY",
+          "message": "Basic IPv6 support is positively confirmed.",
+          "evidence": [
+            "platform=cisco_ios",
+            "model=1841",
+            "os_version=15.1(4)M9"
+          ],
+          "remediation": "NONE",
+          "score": 20,
+          "max_score": 20
+        },
+        {
+          "id": "IPV6-02",
+          "name": "IPv6 addressing capability",
+          "status": "PASS",
+          "category": "CAPABILITY",
+          "message": "IPv6 addresses can be configured and represented.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 15,
+          "max_score": 15
+        },
+        {
+          "id": "IPV6-03",
+          "name": "IPv6 interface configuration",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "All required interfaces are configured for IPv6.",
+          "evidence": [
+            "FastEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 10,
+          "max_score": 10
+        },
+        {
+          "id": "IPV6-04",
+          "name": "IPv6 link-local operation",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "Required IPv6-enabled interfaces have link-local addresses/state.",
+          "evidence": [
+            "FastEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 20,
+          "max_score": 20
+        },
+        {
+          "id": "IPV6-05",
+          "name": "IPv6 forwarding",
+          "status": "PASS",
+          "category": "CAPABILITY_CONFIGURATION",
+          "message": "IPv6 forwarding capability is available and forwarding is enabled.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 15,
+          "max_score": 15
+        },
+        {
+          "id": "IPV6-06",
+          "name": "IPv6 routing table capability",
+          "status": "PASS",
+          "category": "CAPABILITY_OPERATIONAL",
+          "message": "IPv6 routing table capability is confirmed.",
+          "evidence": [
+            "routes=3",
+            "connected=1",
+            "local=2"
+          ],
+          "remediation": "NONE",
+          "score": 5,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-07",
+          "name": "Required IPv6 IGP",
+          "status": "NOT_APPLICABLE",
+          "category": "ROUTING",
+          "message": "No IPv6 IGP is required for this device.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 0,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-08",
+          "name": "Required IPv6 BGP",
+          "status": "NOT_APPLICABLE",
+          "category": "ROUTING",
+          "message": "IPv6 BGP is not required for this device.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 0,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-09",
+          "name": "Required interface coverage",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "All known required L3 interfaces are IPv6-ready.",
+          "evidence": [
+            "FastEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 5,
+          "max_score": 5
+        }
+      ],
+      "recommendations": [],
+      "device_data": {
+        "hostname": "R1",
+        "vendor": "Cisco",
+        "model": "1841",
+        "os_version": "15.1(4)M9",
+        "role": "edge",
+        "platform": "cisco_ios",
+        "device_type": "unknown",
+        "required_routing_protocols": [],
+        "required_ipv6_interfaces": [
+          "FastEthernet0/1"
+        ],
+        "supported_routing_protocols": null,
+        "ipv6_supported": true,
+        "ipv6_addressing_capable": true,
+        "ipv6_forwarding_capable": true,
+        "ipv6_routing_table_capable": true,
+        "ipv6_routing_enabled": true,
+        "interfaces": [
+          {
+            "name": "FastEthernet0/0",
+            "operational": true,
+            "ipv6_enabled": false,
+            "link_local": null,
+            "global_addresses": [],
+            "prefix_lengths": [],
+            "router_advertisements": false,
+            "dad_enabled": false
+          },
+          {
+            "name": "FastEthernet0/1",
+            "operational": true,
+            "ipv6_enabled": true,
+            "link_local": "FE80::F225:72FF:FE4A:20CF",
+            "global_addresses": [
+              "2001:DB8:10::1"
+            ],
+            "prefix_lengths": [],
+            "router_advertisements": false,
+            "dad_enabled": false
+          },
+          {
+            "name": "NVI0",
+            "operational": true,
+            "ipv6_enabled": false,
+            "link_local": null,
+            "global_addresses": [],
+            "prefix_lengths": [],
+            "router_advertisements": false,
+            "dad_enabled": false
+          }
+        ],
+        "routing": {
+          "enabled": true,
+          "route_count": 3,
+          "connected_routes": 1,
+          "local_routes": 2,
+          "static_routes": 0,
+          "ospfv3": false,
+          "ripng": false,
+          "eigrpv6": false,
+          "bgp_ipv6": false,
+          "ipv4_protocols": [],
+          "ipv6_protocols": []
+        }
+      }
+    },
+    {
+      "checklist": {
+        "name": "IPv6 Readiness Checklist",
+        "version": "1.0",
+        "basis": "RIPE-772",
+        "scope": "Basic IPv6 deployment capability and configuration readiness",
+        "full_ripe_772_compliance": false
+      },
+      "device": "R3",
+      "vendor": "Cisco",
+      "model": "CISCO1941/K9",
+      "os_version": "15.0(1)M4",
+      "role": "core",
+      "platform": "cisco_ios",
+      "device_type": "unknown",
+      "required_routing_protocols": [],
+      "required_ipv6_interfaces": [
+        "GigabitEthernet0/0",
+        "GigabitEthernet0/1"
+      ],
+      "score": 100.0,
+      "readiness": "READY",
+      "summary": {
+        "pass": 7,
+        "fail": 0,
+        "warning": 0,
+        "unknown": 0,
+        "not_applicable": 2
+      },
+      "findings": [
+        {
+          "id": "IPV6-01",
+          "name": "Basic IPv6 capability",
+          "status": "PASS",
+          "category": "CAPABILITY",
+          "message": "Basic IPv6 support is positively confirmed.",
+          "evidence": [
+            "platform=cisco_ios",
+            "model=CISCO1941/K9",
+            "os_version=15.0(1)M4"
+          ],
+          "remediation": "NONE",
+          "score": 20,
+          "max_score": 20
+        },
+        {
+          "id": "IPV6-02",
+          "name": "IPv6 addressing capability",
+          "status": "PASS",
+          "category": "CAPABILITY",
+          "message": "IPv6 addresses can be configured and represented.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 15,
+          "max_score": 15
+        },
+        {
+          "id": "IPV6-03",
+          "name": "IPv6 interface configuration",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "All required interfaces are configured for IPv6.",
+          "evidence": [
+            "GigabitEthernet0/0",
+            "GigabitEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 10,
+          "max_score": 10
+        },
+        {
+          "id": "IPV6-04",
+          "name": "IPv6 link-local operation",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "Required IPv6-enabled interfaces have link-local addresses/state.",
+          "evidence": [
+            "GigabitEthernet0/0",
+            "GigabitEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 20,
+          "max_score": 20
+        },
+        {
+          "id": "IPV6-05",
+          "name": "IPv6 forwarding",
+          "status": "PASS",
+          "category": "CAPABILITY_CONFIGURATION",
+          "message": "IPv6 forwarding capability is available and forwarding is enabled.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 15,
+          "max_score": 15
+        },
+        {
+          "id": "IPV6-06",
+          "name": "IPv6 routing table capability",
+          "status": "PASS",
+          "category": "CAPABILITY_OPERATIONAL",
+          "message": "IPv6 routing table capability is confirmed.",
+          "evidence": [
+            "routes=3",
+            "connected=1",
+            "local=2"
+          ],
+          "remediation": "NONE",
+          "score": 5,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-07",
+          "name": "Required IPv6 IGP",
+          "status": "NOT_APPLICABLE",
+          "category": "ROUTING",
+          "message": "No IPv6 IGP is required for this device.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 0,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-08",
+          "name": "Required IPv6 BGP",
+          "status": "NOT_APPLICABLE",
+          "category": "ROUTING",
+          "message": "IPv6 BGP is not required for this device.",
+          "evidence": [],
+          "remediation": "NONE",
+          "score": 0,
+          "max_score": 5
+        },
+        {
+          "id": "IPV6-09",
+          "name": "Required interface coverage",
+          "status": "PASS",
+          "category": "CONFIGURATION",
+          "message": "All known required L3 interfaces are IPv6-ready.",
+          "evidence": [
+            "GigabitEthernet0/0",
+            "GigabitEthernet0/1"
+          ],
+          "remediation": "NONE",
+          "score": 5,
+          "max_score": 5
+        }
+      ],
+      "recommendations": [],
+      "device_data": {
+        "hostname": "R3",
+        "vendor": "Cisco",
+        "model": "CISCO1941/K9",
+        "os_version": "15.0(1)M4",
+        "role": "core",
+        "platform": "cisco_ios",
+        "device_type": "unknown",
+        "required_routing_protocols": [],
+        "required_ipv6_interfaces": [
+          "GigabitEthernet0/0",
+          "GigabitEthernet0/1"
+        ],
+        "supported_routing_protocols": null,
+        "ipv6_supported": true,
+        "ipv6_addressing_capable": true,
+        "ipv6_forwarding_capable": true,
+        "ipv6_routing_table_capable": true,
+        "ipv6_routing_enabled": true,
+        "interfaces": [
+          {
+            "name": "GigabitEthernet0/0",
+            "operational": false,
+            "ipv6_enabled": true,
+            "link_local": "FE80::523D:E5FF:FEB1:6160",
+            "global_addresses": [
+              "2001:DB8:30::1"
+            ],
+            "prefix_lengths": [],
+            "router_advertisements": false,
+            "dad_enabled": false
+          },
+          {
+            "name": "GigabitEthernet0/1",
+            "operational": true,
+            "ipv6_enabled": true,
+            "link_local": "FE80::523D:E5FF:FEB1:6161",
+            "global_addresses": [
+              "2001:DB8:31::1"
+            ],
+            "prefix_lengths": [],
+            "router_advertisements": false,
+            "dad_enabled": false
+          }
+        ],
+        "routing": {
+          "enabled": true,
+          "route_count": 3,
+          "connected_routes": 1,
+          "local_routes": 2,
+          "static_routes": 0,
+          "ospfv3": true,
+          "ripng": false,
+          "eigrpv6": false,
+          "bgp_ipv6": false,
+          "ipv4_protocols": [],
+          "ipv6_protocols": []
+        }
+      }
+    }
+  ]
+}
