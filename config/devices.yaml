@@ -1,17 +1,7 @@
 devices:
 
   - name: R1
-    host: 10.3.132.31
-    platform: cisco_ios
-    role: edge
-    username: cisco
-    password: cisco
-    required_routing_protocols: []
+
 
   - name: R3
-    host: 10.3.128.63
-    platform: cisco_ios
-    role: core
-    username: cisco
-    password: cisco
-    required_routing_protocols: [ospfv3]
+
